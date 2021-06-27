@@ -38,6 +38,12 @@ impl State for MainState {
 
         self.input.time = new;
         self.egui.begin_frame(self.input.take());
+
+        // Set window borders
+        let mut visuals = self.egui.style().visuals.clone();
+        visuals.window_shadow.extrusion = 4.0;
+        self.egui.set_visuals(visuals);
+
         self.input.time = new;
         self.scenes.draw(ctx, &mut self.egui)?;
         let (_output, shapes) = self.egui.end_frame();
