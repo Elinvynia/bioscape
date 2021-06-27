@@ -15,7 +15,7 @@ fn main() -> tetra::Result {
     dotenv::dotenv().expect("Failed to setup dotenv.");
     env_logger::init();
 
-    ContextBuilder::new("Sail", 1280, 720)
+    ContextBuilder::new("Bioscape", 1280, 720)
         .show_mouse(true)
         .build()?
         .run(MainState::new)
