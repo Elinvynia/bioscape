@@ -1,3 +1,6 @@
-fn main() {
-    println!("Hello, world!");
+mod command;
+
+#[async_std::main]
+async fn main() {
+    println!("Hello world")
 }

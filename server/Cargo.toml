@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+async-std = { version = "1.9", features = ["attributes"]}
+hecs = "0.5"
+bioscape-common = { path = "../common" }
