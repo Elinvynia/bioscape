@@ -1,4 +1,4 @@
-use crate::components::{Position, Sprite};
+use bioscape_common::component::{Position, Sprite};
 use crate::world::GameWorld;
 use tetra::graphics::{DrawParams, Texture as TetraTexture};
 use tetra::Context;

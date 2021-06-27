@@ -1,6 +1,6 @@
-use crate::components::{Inventory, ItemName, Player, Position, Sea};
+use bioscape_common::component::{Inventory, ItemName, Player, Position, Sea};
 use crate::input::MoveDir;
-use crate::scenes::{EndScene, SceneSwitch, Scenes, TradeScene};
+use crate::scenes::{EndScene, SceneSwitch, Scenes};
 use crate::utils::TILE_SIZE;
 use crate::world::GameWorld;
 
@@ -30,10 +30,6 @@ pub fn move_player(world: &mut GameWorld, mdir: MoveDir) -> Option<SceneSwitch> 
         if sea {
             position.x = target_pos.0;
             position.y = target_pos.1;
-        } else {
-            // Otherwise, trade with the island.
-            let scene = Scenes::Trade(TradeScene::new());
-            return Some(SceneSwitch::Push(scene));
         }
 
         // Remove one unit of water per move.

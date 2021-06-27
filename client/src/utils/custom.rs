@@ -1,4 +1,4 @@
-use crate::components::{ItemName, TextureFile};
+use bioscape_common::component::{ItemName, TextureFile};
 use std::convert::TryFrom;
 
 // Safety wrapper for egui User textures.

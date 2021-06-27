@@ -1,4 +1,4 @@
-use crate::components::{Hoverable, Info, Position};
+use bioscape_common::component::{Hoverable, Info, Position};
 use crate::utils::TILE_SIZE;
 use egui::{pos2, CtxRef, Id, Rect, Window};
 use hecs::World;

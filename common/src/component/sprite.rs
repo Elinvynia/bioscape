@@ -1,5 +1,8 @@
-use crate::get_assets_folder;
 use std::fmt;
+
+pub fn get_assets_folder() -> String {
+    "assets/".into()
+}
 
 // A sprite can be made from multiple textures (images in our case).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

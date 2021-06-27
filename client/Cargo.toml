@@ -8,6 +8,7 @@ tetra = { version = "0.6", features = ["sdl2_bundled"] }
 hecs = "0.5"
 egui = "0.13"
 rand = "0.8"
+bioscape-common = { path = "../common" }
 
 # Data
 ron = "0.6"

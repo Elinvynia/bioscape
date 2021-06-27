@@ -127,6 +127,7 @@ dependencies = [
 name = "bioscape-client"
 version = "0.1.0"
 dependencies = [
+ "bioscape-common",
  "config",
  "dotenv",
  "egui",
@@ -137,6 +138,13 @@ dependencies = [
  "ron",
  "serde 1.0.126",
  "tetra",
+]
+
+[[package]]
+name = "bioscape-common"
+version = "0.1.0"
+dependencies = [
+ "serde 1.0.126",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-use crate::components::TextureFile;
+use bioscape_common::component::TextureFile;
 use hecs::World;
 use std::collections::HashMap;
 use tetra::graphics::{Camera, Texture};

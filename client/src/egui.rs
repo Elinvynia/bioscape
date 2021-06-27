@@ -1,4 +1,4 @@
-use crate::components::TextureFile;
+use bioscape_common::component::TextureFile;
 use crate::utils::CustomTexture;
 use egui::paint::ClippedShape;
 use egui::{ClippedMesh, CtxRef, Event, Modifiers, Pos2, RawInput};
