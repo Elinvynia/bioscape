@@ -1,4 +1,0 @@
-enum Command {
-    Help,
-    ListPlayers,
-}
