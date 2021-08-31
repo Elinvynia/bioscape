@@ -1,39 +1,26 @@
-use crate::input::{key_to_cameradir, key_to_movedir};
 use crate::scenes::{PauseScene, Scene, SceneSwitch, Scenes};
-use crate::systems::{hover_system, render_system};
-use crate::utils::{position, TILE_SIZE};
+use crate::systems::render_system;
+use crate::utils::position;
 use crate::world::GameWorld;
 use egui::{pos2, vec2, CtxRef, Window};
 use tetra::graphics::set_transform_matrix;
-use tetra::input::{get_keys_down, get_keys_pressed, Key};
+use tetra::input::Key;
 use tetra::window::get_size;
 use tetra::{Context, Event};
 
-mod camera;
-use camera::move_camera;
-mod tick;
-use tick::tick;
-
 #[derive(Debug)]
 pub struct GameScene {
-    width: i32,
-    height: i32,
     pause: bool,
 }
 
 impl GameScene {
     pub fn new(world: &mut GameWorld, ctx: &mut Context) -> Self {
         let (width, height) = get_size(ctx);
-        let (map_width, map_height) = (58, 28);
 
         world.camera.position = [width as f32 / 2.0, height as f32 / 2.0].into();
         world.camera.update();
 
-        GameScene {
-            pause: false,
-            width: (map_width * TILE_SIZE) as i32,
-            height: (map_height * TILE_SIZE) as i32,
-        }
+        GameScene { pause: false }
     }
 }
 
@@ -45,27 +32,12 @@ impl Scene for GameScene {
             return Ok(SceneSwitch::Push(scene));
         }
 
-        for key in get_keys_down(ctx) {
-            if let Some(dir) = key_to_cameradir(key) {
-                move_camera(ctx, &mut world.camera, self, dir);
-            }
-        }
-
-        for key in get_keys_pressed(ctx) {
-            if let Some(mdir) = key_to_movedir(key) {
-                if let Some(ss) = tick(ctx, world, mdir) {
-                    return Ok(ss);
-                }
-            }
-        }
-
         Ok(SceneSwitch::None)
     }
 
     fn draw(&mut self, world: &mut GameWorld, ctx: &mut Context, ectx: &mut CtxRef) -> tetra::Result {
         set_transform_matrix(ctx, world.camera.as_matrix());
         render_system(ctx, world);
-        hover_system(ctx, ectx, &world.ecs, &world.camera);
 
         let pos = world.camera.project([100.0, 100.0].into());
 

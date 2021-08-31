@@ -1,54 +1,69 @@
-use async_std::net::{SocketAddr, TcpStream};
 use bioscape_common::{ClientPacket, ServerPacket};
 use crossbeam_channel::{Receiver, Sender};
-use hecs::World;
 use std::collections::HashMap;
-use std::fmt;
-use std::sync::Mutex;
+use std::net::{SocketAddr, TcpStream};
 
+#[derive(Debug)]
 pub struct Server {
-    pub clients: HashMap<ClientId, Client>,
-    pub world: World,
+    pub clients: HashMap<SocketAddr, Client>,
 }
 
 impl Server {
     pub fn new() -> Self {
-        Server {
+        Self {
             clients: HashMap::new(),
-            world: World::new(),
+        }
+    }
+
+    pub fn add_client(
+        &mut self,
+        addr: SocketAddr,
+        client_receiver: Receiver<ClientPacket>,
+        server_sender: Sender<ServerPacket>,
+    ) {
+        let client = Client::new(client_receiver, server_sender);
+        self.clients.insert(addr, client);
+    }
+
+    pub fn remove_client(&mut self, addr: SocketAddr) {
+        self.clients.remove(&addr);
+    }
+}
+
+#[derive(Debug)]
+pub enum ServerMessage {
+    Disconnect(SocketAddr),
+}
+
+#[derive(Debug)]
+pub struct Client {
+    pub client_receiver: Receiver<ClientPacket>,
+    pub server_sender: Sender<ServerPacket>,
+}
+
+impl Client {
+    pub fn new(client_receiver: Receiver<ClientPacket>, server_sender: Sender<ServerPacket>) -> Self {
+        Self {
+            client_receiver,
+            server_sender,
         }
     }
 }
 
-lazy_static! {
-    static ref INCREMENT: Mutex<u64> = Mutex::new(1);
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct ClientId(u64);
-
-impl ClientId {
-    pub fn new() -> Self {
-        let mut m = INCREMENT.lock().expect("Failed to aquire INCREMENT mutex");
-        let n = *m;
-        *m += 1;
-        ClientId(n)
-    }
-}
-
-impl fmt::Display for ClientId {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-pub struct Client {
-    pub id: ClientId,
-    pub packet_receiver: Receiver<ClientPacket>,
-    pub packet_sender: Sender<ServerPacket>,
-}
-
+#[derive(Debug)]
 pub struct Connection {
-    pub stream: TcpStream,
     pub addr: SocketAddr,
+    pub stream: TcpStream,
+}
+
+impl Connection {
+    pub fn new(addr: SocketAddr, stream: TcpStream) -> Self {
+        Self { addr, stream }
+    }
+
+    pub fn try_clone(&self) -> std::io::Result<Self> {
+        let stream = self.stream.try_clone()?;
+        let conn = Connection::new(self.addr, stream);
+        Ok(conn)
+    }
 }

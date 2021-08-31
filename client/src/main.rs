@@ -4,7 +4,6 @@ use crate::state::MainState;
 use tetra::ContextBuilder;
 
 mod egui;
-mod input;
 mod scenes;
 mod state;
 mod systems;

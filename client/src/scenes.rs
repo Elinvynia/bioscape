@@ -2,8 +2,6 @@ use crate::world::GameWorld;
 use egui::CtxRef;
 use tetra::{Context, Event};
 
-mod end;
-pub use end::EndScene;
 mod game;
 pub use game::GameScene;
 mod menu;
@@ -118,7 +116,6 @@ pub enum Scenes {
     Game(GameScene),
     Options(OptionsScene),
     Pause(PauseScene),
-    End(EndScene),
 }
 
 // Failing to add a new scene here will result in a compilation error.
@@ -129,7 +126,6 @@ impl Scene for Scenes {
             Scenes::Game(s) => s.update(world, ctx),
             Scenes::Options(s) => s.update(world, ctx),
             Scenes::Pause(s) => s.update(world, ctx),
-            Scenes::End(s) => s.update(world, ctx),
         }
     }
 
@@ -139,7 +135,6 @@ impl Scene for Scenes {
             Scenes::Game(s) => s.draw(world, ctx, ectx),
             Scenes::Options(s) => s.draw(world, ctx, ectx),
             Scenes::Pause(s) => s.draw(world, ctx, ectx),
-            Scenes::End(s) => s.draw(world, ctx, ectx),
         }
     }
 
@@ -149,7 +144,6 @@ impl Scene for Scenes {
             Scenes::Game(s) => s.event(world, ctx, event),
             Scenes::Options(s) => s.event(world, ctx, event),
             Scenes::Pause(s) => s.event(world, ctx, event),
-            Scenes::End(s) => s.event(world, ctx, event),
         }
     }
 
@@ -159,7 +153,6 @@ impl Scene for Scenes {
             Scenes::Game(s) => s.draw_previous(),
             Scenes::Options(s) => s.draw_previous(),
             Scenes::Pause(s) => s.draw_previous(),
-            Scenes::End(s) => s.draw_previous(),
         }
     }
 }

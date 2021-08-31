@@ -4,15 +4,13 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-async-std = { version = "1.9", features = ["attributes"]}
-futures = "0.3"
+bioscape-common = { path = "../common" }
 bincode = "1.3"
 crossbeam-channel = "0.5"
+hecs = "0.6"
 lazy_static = "1.4"
-bioscape-common = { path = "../common" }
-hecs = "0.5"
 
 # Logging
 log = "0.4"
-env_logger = "0.8"
+env_logger = "0.9"
 dotenv = "0.15"

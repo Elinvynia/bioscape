@@ -18,5 +18,5 @@ pub struct ClientPacket {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub enum ClientCommand {
-    Move,
+    Move(u16),
 }

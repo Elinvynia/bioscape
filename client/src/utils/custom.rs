@@ -1,4 +1,4 @@
-use bioscape_common::component::{ItemName, TextureFile};
+use bioscape_common::component::TextureFile;
 use std::convert::TryFrom;
 
 // Safety wrapper for egui User textures.
@@ -6,10 +6,6 @@ use std::convert::TryFrom;
 #[derive(Debug)]
 pub enum CustomTexture {
     Unimplemented,
-    Gold,
-    Bananas,
-    Rum,
-    Water,
 }
 
 impl TryFrom<u64> for CustomTexture {
@@ -19,10 +15,6 @@ impl TryFrom<u64> for CustomTexture {
         use CustomTexture::*;
         match value {
             0 => Ok(Unimplemented),
-            1 => Ok(Gold),
-            2 => Ok(Bananas),
-            3 => Ok(Rum),
-            4 => Ok(Water),
             _ => Err(()),
         }
     }
@@ -33,10 +25,6 @@ impl From<CustomTexture> for u64 {
         use CustomTexture::*;
         match ct {
             Unimplemented => 0,
-            Gold => 1,
-            Bananas => 2,
-            Rum => 3,
-            Water => 4,
         }
     }
 }
@@ -46,21 +34,6 @@ impl From<CustomTexture> for TextureFile {
         use CustomTexture::*;
         match ct {
             Unimplemented => TextureFile::Unimplemented,
-            Gold => TextureFile::Gold,
-            Bananas => TextureFile::Bananas,
-            Rum => TextureFile::Rum,
-            Water => TextureFile::Water,
-        }
-    }
-}
-
-impl From<ItemName> for CustomTexture {
-    fn from(i: ItemName) -> Self {
-        use ItemName::*;
-        match i {
-            Rum => CustomTexture::Rum,
-            Bananas => CustomTexture::Bananas,
-            Water => CustomTexture::Water,
         }
     }
 }

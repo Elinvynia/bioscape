@@ -1,70 +1,78 @@
-use crate::data::Connection;
-use async_std::net::TcpStream;
-use async_std::prelude::*;
-use bioscape_common::{ClientPacket, ServerPacket};
+use crate::{Connection, ServerMessage};
+use bincode::{deserialize, serialize};
+use bioscape_common::{ClientCommand, ClientPacket, ServerPacket};
 use crossbeam_channel::{Receiver, Sender};
-use futures::join;
-use log::error;
+use log::{error, info};
+use std::io::prelude::*;
 
 // Thread.
-pub async fn transfer(
-    connection: Connection,
-    server_receiver: Receiver<ServerPacket>,
-    client_sender: Sender<ClientPacket>,
-) {
-    let stream_read = &connection.stream;
-    let stream_write = &connection.stream;
+pub fn reader(mut conn: Connection, client_sender: Sender<ClientPacket>, message_sender: Sender<ServerMessage>) {
+    // This hack is required to make the underlying TCP connection behave in a packet-like way.
+    let packet = ClientPacket {
+        command: ClientCommand::Move(0),
+    };
+    let size = serialize(&packet).unwrap().len();
 
-    let reader = reader(stream_read, client_sender);
-    let writer = writer(stream_write, server_receiver);
-
-    join!(reader, writer);
-}
-
-// Blocking.
-pub async fn reader(mut stream: &TcpStream, client_sender: Sender<ClientPacket>) {
-    let mut buffer = vec![0u8; 1024];
+    let mut buffer = vec![0u8; size];
     loop {
-        match stream.read(&mut buffer).await {
-            Ok(_) => {
-                let packet = match bincode::deserialize(&buffer) {
+        match conn.stream.read_exact(&mut buffer) {
+            Ok(_n) => {
+                let packet = match deserialize(&buffer) {
                     Ok(p) => p,
                     Err(e) => {
-                        error!("Failed to serialize data to packet: {}", e);
-                        continue;
+                        error!("Failed to deserialize packet: {:?} ({:?})", e, &buffer);
+                        message_sender.send(ServerMessage::Disconnect(conn.addr)).unwrap();
+                        return;
                     }
                 };
 
-                match client_sender.send(packet) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        error!("Failed to send received packet: {}", e);
-                        continue;
-                    }
-                }
+                info!("Received packet: {:?}", &packet);
 
-                buffer.clear();
+                if let Err(e) = client_sender.send(packet) {
+                    error!("Failed to send received packet {:?}", e);
+                    message_sender.send(ServerMessage::Disconnect(conn.addr)).unwrap();
+                    return;
+                }
             }
-            Err(e) => error!("Failed to read data from client: {}", e),
+            Err(e) => {
+                error!("Failed to read packet from stream: {:?}", e);
+                message_sender.send(ServerMessage::Disconnect(conn.addr)).unwrap();
+                return;
+            }
         }
+
+        buffer = vec![0u8; size];
     }
 }
 
-// Blocking.
-pub async fn writer(mut stream: &TcpStream, server_receiver: Receiver<ServerPacket>) {
+// Thread.
+pub fn writer(mut conn: Connection, server_receiver: Receiver<ServerPacket>, message_sender: Sender<ServerMessage>) {
     loop {
-        let packet = match server_receiver.recv() {
-            Ok(p) => p,
-            Err(e) => {
-                error!("Failed to receive packet: {}", e);
-                continue;
+        match server_receiver.recv() {
+            Ok(p) => {
+                let serialized = match serialize(&p) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        error!("Failed to serialize packet: {:?}", e);
+                        message_sender.send(ServerMessage::Disconnect(conn.addr)).unwrap();
+                        return;
+                    }
+                };
+
+                match conn.stream.write_all(&serialized) {
+                    Ok(_n) => info!("Sent packet: {:?}", &p),
+                    Err(e) => {
+                        error!("Failed to send packet to stream: {:?}", e);
+                        message_sender.send(ServerMessage::Disconnect(conn.addr)).unwrap();
+                        return;
+                    }
+                }
             }
-        };
-
-        let serialized = bincode::serialize(&packet).expect("Failed to serialize valid packet.");
-
-        if let Err(e) = stream.write(&serialized).await {
-            error!("Failed to send packet to client: {}", e);
+            Err(e) => {
+                error!("Failed to receive packet to send: {:?}", e);
+                message_sender.send(ServerMessage::Disconnect(conn.addr)).unwrap();
+                return;
+            }
         };
     }
 }

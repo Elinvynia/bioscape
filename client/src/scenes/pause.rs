@@ -7,7 +7,7 @@ use tetra::input::Key;
 use tetra::window::get_size;
 use tetra::{Context, Event};
 
-// The pause menu, giving the player time to chill.
+// The pause menu.
 #[derive(Debug, Default)]
 pub struct PauseScene {
     resume: bool,

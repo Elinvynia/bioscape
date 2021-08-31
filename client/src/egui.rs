@@ -1,5 +1,7 @@
-use bioscape_common::component::TextureFile;
+//! egui integration lives here.
+
 use crate::utils::CustomTexture;
+use bioscape_common::component::TextureFile;
 use egui::paint::ClippedShape;
 use egui::{ClippedMesh, CtxRef, Event, Modifiers, Pos2, RawInput};
 use egui::{PointerButton, Texture as ETexture, TextureId, Vec2 as EVec2};

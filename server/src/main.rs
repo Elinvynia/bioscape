@@ -1,27 +1,24 @@
-use async_std::net::TcpListener;
 use crossbeam_channel::unbounded;
-use log::error;
+use std::net::TcpListener;
 use std::thread::spawn;
-
-#[macro_use]
-extern crate lazy_static;
 
 mod accept;
 mod data;
-use data::{Client, ClientId, Server};
+use data::{Connection, Server, ServerMessage};
 mod transfer;
+use transfer::{reader, writer};
 
-#[async_std::main]
-async fn main() {
+fn main() {
     dotenv::dotenv().expect("Failed to load .env");
     env_logger::try_init().expect("Failed to initialize env_logger");
 
-    let listener = TcpListener::bind("").await.expect("Failed to bind TcpListener");
+    let listener = TcpListener::bind("127.0.0.1:5000").expect("Failed to bind TcpListener");
 
     // Start thread to listen for new connections.
     let (conn_sender, conn_receiver) = unbounded();
     spawn(|| accept::accept(listener, conn_sender));
 
+    let (message_sender, message_receiver) = unbounded();
     let mut server = Server::new();
 
     // A server tick.
@@ -31,38 +28,27 @@ async fn main() {
             let (client_sender, client_receiver) = unbounded();
             let (server_sender, server_receiver) = unbounded();
 
-            let id = ClientId::new();
-            let client = Client {
-                id,
-                packet_sender: server_sender,
-                packet_receiver: client_receiver,
-            };
+            server.add_client(conn.addr, client_receiver, server_sender);
 
-            server.clients.insert(id, client);
-
-            spawn(|| transfer::transfer(conn, server_receiver, client_sender));
+            let conn_clone = conn.try_clone().expect("Stream clone failed");
+            let message_clone = message_sender.clone();
+            spawn(|| reader(conn, client_sender, message_clone));
+            let message_clone = message_sender.clone();
+            spawn(|| writer(conn_clone, server_receiver, message_clone));
         }
 
-        // Check for new packets from connected clients.
-        let mut received = vec![];
-        for (id, client) in server.clients.iter() {
-            if let Ok(packet) = client.packet_receiver.try_recv() {
-                received.push((id, packet))
+        // Check for new server messages.
+        if let Ok(mess) = message_receiver.try_recv() {
+            use ServerMessage::*;
+            match mess {
+                Disconnect(addr) => server.remove_client(addr),
             }
         }
 
-        // Process the packets
-        let queue = vec![];
+        // Receive packets
 
-        // Send updated data to connected clients.
-        for (id, packet) in queue {
-            match server.clients.get(id) {
-                Some(client) => match client.packet_sender.send(packet) {
-                    Ok(()) => {}
-                    Err(e) => error!("Failed to send packet to client: {}", e),
-                },
-                None => error!("Client does not exist: {}", id),
-            }
-        }
+        // Process data
+
+        // Send packets
     }
 }
