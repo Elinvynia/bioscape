@@ -1,6 +1,8 @@
+use bioscape_common::{ServerPacket, ClientPacket};
 use crate::egui::{handle_event, render_ui};
 use crate::scenes::{MenuScene, SceneStack, Scenes};
 use crate::world::GameWorld;
+use crossbeam_channel::{Sender, Receiver};
 use egui::{pos2, CtxRef, RawInput};
 use tetra::graphics::{clear, Color};
 use tetra::time::get_delta_time;
@@ -14,8 +16,8 @@ pub struct MainState {
 }
 
 impl MainState {
-    pub fn new(ctx: &mut Context) -> tetra::Result<Self> {
-        let mut world = GameWorld::new(ctx);
+    pub fn new(ctx: &mut Context, client_sender: Sender<ClientPacket>, server_receiver: Receiver<ServerPacket>) -> tetra::Result<Self> {
+        let mut world = GameWorld::new(ctx, client_sender, server_receiver);
         let scene = MenuScene::new(&mut world, ctx);
         let scenes = SceneStack::new(world, Scenes::Menu(scene));
 

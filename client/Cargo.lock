@@ -139,6 +139,7 @@ dependencies = [
  "bincode",
  "bioscape-common",
  "config",
+ "crossbeam-channel",
  "dotenv",
  "egui",
  "env_logger",

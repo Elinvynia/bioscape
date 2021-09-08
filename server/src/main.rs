@@ -1,54 +1,42 @@
 use crossbeam_channel::unbounded;
-use std::net::TcpListener;
-use std::thread::spawn;
+use tokio::net::TcpListener;
+use tokio::task::spawn;
 
 mod accept;
 mod data;
-use data::{Connection, Server, ServerMessage};
-mod transfer;
-use transfer::{reader, writer};
+use data::Message;
 
-fn main() {
-    dotenv::dotenv().expect("Failed to load .env");
-    env_logger::try_init().expect("Failed to initialize env_logger");
+#[tokio::main]
+async fn main() {
+    // Environment setup.
+    dotenv::dotenv().expect("Failed to initialize .env");
 
-    let listener = TcpListener::bind("127.0.0.1:5000").expect("Failed to bind TcpListener");
+    // Logging setup.
+    tracing_subscriber::fmt::init();
 
-    // Start thread to listen for new connections.
-    let (conn_sender, conn_receiver) = unbounded();
-    spawn(|| accept::accept(listener, conn_sender));
+    // Channel to receive messages from tasks.
+    let (r_sender, r_receiver) = unbounded::<Message>();
 
-    let (message_sender, message_receiver) = unbounded();
-    let mut server = Server::new();
+    // Channel to send messages to tasks.
+    let (s_sender, s_receiver) = unbounded::<Message>();
 
-    // A server tick.
+    // Bind a TcpListener and start listening for connections.
+    let listener = TcpListener::bind("127.0.0.1:8000").await.expect("Failed to bind TcpListener");
+    spawn(accept::listen(listener, r_sender.clone(), s_receiver.clone()));
+
+    // Main server loop.
     loop {
-        // Check for new connections.
-        if let Ok(conn) = conn_receiver.try_recv() {
-            let (client_sender, client_receiver) = unbounded();
-            let (server_sender, server_receiver) = unbounded();
+        // Check for new messages.
+        while let Ok(message) = r_receiver.try_recv() {
 
-            server.add_client(conn.addr, client_receiver, server_sender);
-
-            let conn_clone = conn.try_clone().expect("Stream clone failed");
-            let message_clone = message_sender.clone();
-            spawn(|| reader(conn, client_sender, message_clone));
-            let message_clone = message_sender.clone();
-            spawn(|| writer(conn_clone, server_receiver, message_clone));
         }
 
-        // Check for new server messages.
-        if let Ok(mess) = message_receiver.try_recv() {
-            use ServerMessage::*;
-            match mess {
-                Disconnect(addr) => server.remove_client(addr),
-            }
+        // Process packets.
+        let messages = vec![];
+
+        // Send messages.
+        for message in messages {
+            s_sender.send(message).expect("Failed to send message.");
         }
-
-        // Receive packets
-
-        // Process data
-
-        // Send packets
     }
 }
