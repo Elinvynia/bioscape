@@ -1,10 +1,10 @@
-use bioscape_common::ClientPacket;
 use crate::Message;
-use crossbeam_channel::{Sender, Receiver};
+use bioscape_common::ClientPacket;
+use crossbeam_channel::{Receiver, Sender};
 use std::net::SocketAddr;
 use tokio::io::*;
-use tokio::net::TcpListener;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::net::TcpListener;
 use tokio::task::spawn;
 use tracing::{error, info};
 
@@ -16,8 +16,8 @@ pub async fn listen(listener: TcpListener, sender: Sender<Message>, receiver: Re
                 let (read, write) = conn.into_split();
                 spawn(reader(read, addr, sender.clone(), receiver.clone()));
                 spawn(writer(write, addr, sender.clone(), receiver.clone()));
-            },
-            Err(e) => error!("Failed to accept new connection: {:?}", e)
+            }
+            Err(e) => error!("Failed to accept new connection: {:?}", e),
         }
     }
 }
@@ -31,7 +31,7 @@ pub async fn reader(stream: OwnedReadHalf, addr: SocketAddr, sender: Sender<Mess
             use Message::*;
             match message {
                 Disconnected(ip) if ip == addr => return,
-                _ => {},
+                _ => {}
             }
         }
 
@@ -57,7 +57,12 @@ pub async fn reader(stream: OwnedReadHalf, addr: SocketAddr, sender: Sender<Mess
     }
 }
 
-pub async fn writer(mut stream: OwnedWriteHalf, addr: SocketAddr, sender: Sender<Message>, receiver: Receiver<Message>) {
+pub async fn writer(
+    mut stream: OwnedWriteHalf,
+    addr: SocketAddr,
+    sender: Sender<Message>,
+    receiver: Receiver<Message>,
+) {
     loop {
         if let Ok(message) = receiver.try_recv() {
             use Message::*;
@@ -71,7 +76,7 @@ pub async fn writer(mut stream: OwnedWriteHalf, addr: SocketAddr, sender: Sender
                     }
                 }
                 Disconnected(ip) if ip == addr => return,
-                _ => {},
+                _ => {}
             }
         }
     }

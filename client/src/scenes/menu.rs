@@ -45,7 +45,7 @@ impl Scene for MenuScene {
     fn draw(&mut self, _world: &mut GameWorld, ctx: &mut Context, ectx: &mut CtxRef) -> tetra::Result {
         let rect = center(ctx, vec2(150.0, 150.0));
 
-        Window::new("Sail")
+        Window::new("Bioscape")
             .title_bar(true)
             .collapsible(false)
             .resizable(false)

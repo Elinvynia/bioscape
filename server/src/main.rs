@@ -1,4 +1,5 @@
 use crossbeam_channel::unbounded;
+use hecs::World;
 use tokio::net::TcpListener;
 use tokio::task::spawn;
 
@@ -21,15 +22,17 @@ async fn main() {
     let (s_sender, s_receiver) = unbounded::<Message>();
 
     // Bind a TcpListener and start listening for connections.
-    let listener = TcpListener::bind("127.0.0.1:8000").await.expect("Failed to bind TcpListener");
+    let listener = TcpListener::bind("127.0.0.1:8000")
+        .await
+        .expect("Failed to bind TcpListener");
     spawn(accept::listen(listener, r_sender.clone(), s_receiver.clone()));
+
+    let _world = World::new();
 
     // Main server loop.
     loop {
         // Check for new messages.
-        while let Ok(message) = r_receiver.try_recv() {
-
-        }
+        while let Ok(_message) = r_receiver.try_recv() {}
 
         // Process packets.
         let messages = vec![];

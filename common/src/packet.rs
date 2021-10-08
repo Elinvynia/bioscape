@@ -2,18 +2,18 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ServerPacket {
-    pub command: ServerCommand
+    pub command: ServerCommand,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub enum ServerCommand {
     AddComponent,
-    RemoveComponent
+    RemoveComponent,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ClientPacket {
-    pub command: ClientCommand
+    pub command: ClientCommand,
 }
 
 #[derive(Deserialize, Serialize, Debug)]

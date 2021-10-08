@@ -2,8 +2,8 @@
 
 use crate::state::MainState;
 use crossbeam_channel::unbounded;
-use tetra::ContextBuilder;
 use std::thread::spawn;
+use tetra::ContextBuilder;
 
 mod egui;
 mod network;
@@ -17,13 +17,16 @@ fn main() -> tetra::Result {
     dotenv::dotenv().expect("Failed to setup dotenv.");
     env_logger::init();
 
-    let (client_sender, client_receiver) = unbounded();
-    let (server_sender, server_receiver) = unbounded();
+    // Channel to receive messages from network.
+    let (r_sender, r_receiver) = unbounded();
 
-    spawn(|| network::start(client_receiver, server_sender));
+    // Channel to send messages to network.
+    let (s_sender, s_receiver) = unbounded();
+
+    spawn(|| network::start(s_receiver, r_sender));
 
     ContextBuilder::new("Bioscape", 1280, 720)
         .show_mouse(true)
         .build()?
-        .run(|ctx| MainState::new(ctx, client_sender, server_receiver))
+        .run(|ctx| MainState::new(ctx, s_sender, r_receiver))
 }

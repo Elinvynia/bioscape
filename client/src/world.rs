@@ -1,6 +1,6 @@
-use bioscape_common::{ServerPacket, ClientPacket};
+use crate::network::Message;
 use bioscape_common::component::TextureFile;
-use crossbeam_channel::{Sender, Receiver};
+use crossbeam_channel::{Receiver, Sender};
 use hecs::World;
 use std::collections::HashMap;
 use tetra::graphics::{Camera, Texture};
@@ -11,12 +11,12 @@ pub struct GameWorld {
     pub ecs: World,
     pub textures: HashMap<TextureFile, Texture>,
     pub camera: Camera,
-    pub client_sender: Sender<ClientPacket>,
-    pub server_receiver: Receiver<ServerPacket>,
+    pub client_sender: Sender<Message>,
+    pub server_receiver: Receiver<Message>,
 }
 
 impl GameWorld {
-    pub fn new(ctx: &mut Context, client_sender: Sender<ClientPacket>, server_receiver: Receiver<ServerPacket>) -> Self {
+    pub fn new(ctx: &mut Context, client_sender: Sender<Message>, server_receiver: Receiver<Message>) -> Self {
         GameWorld {
             ecs: World::new(),
             textures: HashMap::new(),
