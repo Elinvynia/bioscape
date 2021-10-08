@@ -1,22 +1,21 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone)]
 pub struct ServerPacket {
     pub command: ServerCommand,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone)]
 pub enum ServerCommand {
-    AddComponent,
-    RemoveComponent,
+    Pong(u16),
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone)]
 pub struct ClientPacket {
     pub command: ClientCommand,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone)]
 pub enum ClientCommand {
-    Move(u16),
+    Ping(u16),
 }

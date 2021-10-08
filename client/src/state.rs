@@ -18,10 +18,20 @@ pub struct MainState {
 impl MainState {
     pub fn new(
         ctx: &mut Context,
-        client_sender: Sender<Message>,
-        server_receiver: Receiver<Message>,
+        start_sender: Sender<Message>,
+        reader_sender: Sender<Message>,
+        reader_receiver: Receiver<Message>,
+        writer_sender: Sender<Message>,
+        writer_receiver: Receiver<Message>,
     ) -> tetra::Result<Self> {
-        let mut world = GameWorld::new(ctx, client_sender, server_receiver);
+        let mut world = GameWorld::new(
+            ctx,
+            start_sender,
+            reader_sender,
+            reader_receiver,
+            writer_sender,
+            writer_receiver,
+        );
         let scene = MenuScene::new(&mut world, ctx);
         let scenes = SceneStack::new(world, Scenes::Menu(scene));
 

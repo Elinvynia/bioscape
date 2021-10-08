@@ -13,6 +13,7 @@ pub async fn listen(listener: TcpListener, sender: Sender<Message>, receiver: Re
         match listener.accept().await {
             Ok((conn, addr)) => {
                 info!("Received new connection from: {}", addr);
+                let _ = conn.set_nodelay(true);
                 let (read, write) = conn.into_split();
                 spawn(reader(read, addr, sender.clone(), receiver.clone()));
                 spawn(writer(write, addr, sender.clone(), receiver.clone()));
@@ -24,8 +25,8 @@ pub async fn listen(listener: TcpListener, sender: Sender<Message>, receiver: Re
 
 pub async fn reader(stream: OwnedReadHalf, addr: SocketAddr, sender: Sender<Message>, receiver: Receiver<Message>) {
     let mut stream = BufReader::new(stream);
-
     let mut buffer = String::with_capacity(1024);
+
     loop {
         if let Ok(message) = receiver.try_recv() {
             use Message::*;

@@ -22,7 +22,7 @@ async fn main() {
     let (s_sender, s_receiver) = unbounded::<Message>();
 
     // Bind a TcpListener and start listening for connections.
-    let listener = TcpListener::bind("127.0.0.1:8000")
+    let listener = TcpListener::bind("127.0.0.1:5555")
         .await
         .expect("Failed to bind TcpListener");
     spawn(accept::listen(listener, r_sender.clone(), s_receiver.clone()));
