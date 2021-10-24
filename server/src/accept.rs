@@ -25,12 +25,8 @@ pub async fn reader(stream: OwnedReadHalf, sender: Sender<Message>, receiver: Re
     let mut buffer = String::with_capacity(1024);
 
     loop {
-        if let Ok(message) = receiver.try_recv() {
-            use Message::*;
-            match message {
-                Disconnected => return,
-                _ => {}
-            }
+        if let Ok(Message::Disconnected) = receiver.try_recv() {
+            return;
         }
 
         if let Err(e) = stream.read_line(&mut buffer).await {

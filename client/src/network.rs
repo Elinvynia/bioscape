@@ -23,20 +23,15 @@ pub fn start(
     writer_sender: Sender<Message>,
 ) {
     loop {
-        if let Ok(message) = start_receiver.try_recv() {
-            match message {
-                Message::Start => {
-                    let stream_one = TcpStream::connect("127.0.0.1:5555").unwrap();
-                    let _ = stream_one.set_nodelay(true);
+        if let Ok(Message::Start) = start_receiver.try_recv() {
+            let stream_one = TcpStream::connect("127.0.0.1:5555").unwrap();
+            let _ = stream_one.set_nodelay(true);
 
-                    let stream_two = stream_one.try_clone().unwrap();
+            let stream_two = stream_one.try_clone().unwrap();
 
-                    spawn(move || reader(stream_one, reader_receiver, reader_sender));
-                    spawn(move || writer(stream_two, writer_receiver, writer_sender));
-                    return;
-                }
-                _ => {}
-            }
+            spawn(move || reader(stream_one, reader_receiver, reader_sender));
+            spawn(move || writer(stream_two, writer_receiver, writer_sender));
+            return;
         }
     }
 }
@@ -48,12 +43,9 @@ pub fn reader(stream: TcpStream, message_receiver: Receiver<Message>, message_se
     loop {
         if let Ok(message) = message_receiver.try_recv() {
             info!("Reader received message: {:?}", &message);
-            match message {
-                Message::Disconnect => {
-                    let _ = stream.get_mut().shutdown(Shutdown::Read);
-                    return;
-                }
-                _ => {}
+            if let Message::Disconnect = message {
+                let _ = stream.get_mut().shutdown(Shutdown::Read);
+                return;
             }
         }
 
